@@ -1,5 +1,5 @@
 const std = @import("std");
-const sessionizer = @import("./sessionizer.zig");
+const sessionizer = @import("sessionizer/main.zig");
 const assert = std.debug.assert;
 
 pub fn main() !void {
@@ -19,7 +19,23 @@ pub fn main() !void {
         }
 
         if (std.mem.eql(u8, arg, "sessionizer")) {
-            try sessionizer.run(allocator);
+            var config = sessionizer.Config.init(allocator);
+            defer config.deinit();
+
+            sessionizer.Config.parse(&config, &iter) catch {
+                return;
+            };
+            try sessionizer.run(allocator, config);
+            return;
+        }
+
+        if (std.mem.eql(u8, arg, "mkdir")) {
+            std.log.info("Not implemented\n", .{});
+            return;
+        }
+
+        if (std.mem.eql(u8, arg, "exec")) {
+            std.log.info("Not implemented\n", .{});
             return;
         }
 

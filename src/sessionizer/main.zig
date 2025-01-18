@@ -1,10 +1,20 @@
 const std = @import("std");
-const tmux = @import("./tmux.zig");
+const assert = std.debug.assert;
+const tmux = @import("../tmux.zig");
+pub const Config = @import("Config.zig");
 
-pub fn run(allocator: std.mem.Allocator) !void {
+pub fn run(allocator: std.mem.Allocator, config: Config) !void {
+    assert(config.directories != null);
+
+    const directories = try std.mem.join(allocator, " ", config.directories.?);
+    defer allocator.free(directories);
+
+    const cmd = try std.fmt.allocPrint(allocator, "find {s} -mindepth 1 -maxdepth 1 -type d | fzf", .{directories});
+    defer allocator.free(cmd);
+
     const result = try std.process.Child.run(.{
         .allocator = allocator,
-        .argv = &.{ "bash", "-c", "find /home/hann0t/Personal/* /home/hann0t/Work/* -mindepth 1 -maxdepth 1 -type d | fzf" },
+        .argv = &.{ "bash", "-c", cmd },
     });
     defer {
         allocator.free(result.stdout);
@@ -12,6 +22,7 @@ pub fn run(allocator: std.mem.Allocator) !void {
     }
 
     if (result.stderr.len > 0) {
+        std.log.err("tmux {s}\n", .{result.stderr});
         return error.StdErr;
     }
 

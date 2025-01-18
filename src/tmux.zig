@@ -54,20 +54,8 @@ pub fn attach(allocator: std.mem.Allocator, name: []const u8) !void {
     }
 }
 
+// https://github.com/ghostty-org/ghostty/blob/72d085525b22d66468c5969a4d507a0fa68d4a04/src/os/env.zig#L71
 pub fn in_tmux(allocator: std.mem.Allocator) !bool {
-    const result = try std.process.Child.run(.{
-        .allocator = allocator,
-        .argv = &.{ "bash", "-c", "echo $TMUX" },
-    });
-    defer {
-        allocator.free(result.stdout);
-        allocator.free(result.stderr);
-    }
-
-    if (result.stderr.len > 0) {
-        return error.StdErr;
-    }
-
-    // TODO: better condition
-    return result.stdout.len > 1;
+    _ = allocator;
+    return std.posix.getenv("TMUX") != null;
 }

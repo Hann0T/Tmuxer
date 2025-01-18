@@ -22,7 +22,10 @@ pub fn main() !void {
             var config = sessionizer.Config.init(allocator);
             defer config.deinit();
 
-            sessionizer.Config.parse(&config, &iter) catch {
+            sessionizer.Config.parse(&config, &iter) catch |err| {
+                if (err == error.InvalidArgument) {
+                    std.log.err("{s}", .{@errorName(err)});
+                }
                 return;
             };
             try sessionizer.run(allocator, config);

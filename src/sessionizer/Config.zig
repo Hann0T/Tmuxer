@@ -37,7 +37,8 @@ pub fn parse(config: *Config, iter: *std.process.ArgIterator) !void {
             var path_iter = std.mem.splitScalar(u8, arg[start..], ',');
             while (path_iter.next()) |path| {
                 if (path.len > 0) {
-                    try list.append(try format_path(allocator, path));
+                    const trimmed = std.mem.trim(u8, path, " ");
+                    try list.append(try format_path(allocator, trimmed));
                 }
             }
         } else {

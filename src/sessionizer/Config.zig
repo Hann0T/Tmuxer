@@ -6,11 +6,11 @@ const Config = @This();
 arena: ?std.heap.ArenaAllocator = null,
 directories: ?[][]const u8 = null,
 
-pub fn parse(config: *Config, iter: *std.process.ArgIterator) !void {
+pub fn parse(config: *Config, iter: *std.process.ArgIterator) !bool {
     assert(config.arena != null);
     if (iter.inner.index == iter.inner.count) {
         try help();
-        return error.InvalidArgument;
+        return false;
     }
 
     const allocator = config.arena.?.allocator();
@@ -20,7 +20,7 @@ pub fn parse(config: *Config, iter: *std.process.ArgIterator) !void {
     while (iter.next()) |arg| {
         if (std.mem.eql(u8, arg, "--help") or std.mem.eql(u8, arg, "--help")) {
             try help();
-            return error.HelpArgument;
+            return false;
         }
 
         if (!std.mem.startsWith(u8, arg, "--")) {
@@ -31,7 +31,7 @@ pub fn parse(config: *Config, iter: *std.process.ArgIterator) !void {
             const start = index + 5;
             if (arg[start..].len <= 0) {
                 try help();
-                return error.HelpArgument;
+                return false;
             }
 
             var path_iter = std.mem.splitScalar(u8, arg[start..], ',');
@@ -43,11 +43,12 @@ pub fn parse(config: *Config, iter: *std.process.ArgIterator) !void {
             }
         } else {
             try help();
-            return error.HelpArgument;
+            return false;
         }
     }
 
     config.directories = try list.toOwnedSlice();
+    return true;
 }
 
 pub fn help() !void {
